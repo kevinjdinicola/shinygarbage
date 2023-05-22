@@ -5,7 +5,7 @@ use std::time::SystemTime;
 const SPEED_LIMIT: f32 = 1f32;
 const RECT_COUNT_X: usize = 30;
 const RECT_COUNT_Y: usize = 30;
-const DECAY_RATE: f32 = 0.02f32;
+const DECAY_RATE: f32 = 0.05f32;
 
 struct Model {
     _window: window::Id,
@@ -184,10 +184,16 @@ fn view(app: &App, model: &Model, frame: Frame) {
                     hue,
                     ..
                 } = model.grid[x][y];
+                let scale = (5.0 * (excited + 0.001)).log2();
+                let color = Hsl::new(hue, 1f32, 0.5f32 * excited);
+                let spinny = (4.0 / excited * (if (x + y) % 2 == 0 { 1.0 } else { -1.0 })).log2();
+
                 draw.rect()
                     .xy(point)
-                    .wh(dims)
-                    .color(Hsl::new(hue, 1f32, 0.5f32 * excited));
+                    .z(scale)
+                    .wh(dims * scale)
+                    .rotate(if excited < 0.2f32 { spinny } else { 0.0 })
+                    .color(color);
             }
         }
     }
