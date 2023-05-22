@@ -69,8 +69,12 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
     update_rects(_app, model);
 
     // rotate color based on speed
-    model.color_pos += model.mouse_speed;
+    if !f32::is_nan(model.mouse_speed) {
+        model.color_pos += model.mouse_speed*0.5f32;
+    }
+
     if model.color_pos > 360f32 { model.color_pos -= 360f32 }
+
 
     // did we bonk a new rect?
     let cur_bonked_rect = get_rect_mouse_is_in(_app);
@@ -84,6 +88,8 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
         let bonk_rect= &mut model.grid[x as usize][y as usize];
         bonk_rect.excited = speed_percent;
         bonk_rect.hue = model.color_pos;
+
+        bonk_rect.sleeping = false;
     }
 
 }
@@ -94,6 +100,7 @@ struct BonkRect {
     dims: Vec2,
     excited: f32,
     hue: f32,
+    sleeping: bool,
 }
 
 impl BonkRect {
@@ -103,6 +110,7 @@ impl BonkRect {
             dims: Vec2::new(1f32,1f32),
             excited: 0f32,
             hue: 0f32,
+            sleeping: true,
         }
     }
 }
@@ -121,8 +129,12 @@ fn update_rects(app: &App, model: &mut Model) {
             rect.point.x = x as f32 * rect_width - x_offset;
             rect.point.y = y as f32 * rect_height - y_offset;
             // the minus 5 gives a space
-            rect.dims.x = rect_width - 5f32;
-            rect.dims.y = rect_height - 5f32;
+            rect.dims.x = rect_width - 1f32;
+            rect.dims.y = rect_height - 1f32;
+
+            if rect.excited < 0.001f32 && !rect.sleeping {
+                rect.sleeping = true;
+            }
 
             if rect.excited > 0f32 {
                 // slow decay
@@ -152,15 +164,19 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     draw.background().color(BLACK);
 
+
     for x in 0..RECT_COUNT_X {
         for y in 0..RECT_COUNT_Y {
-            let BonkRect { point, dims, excited, hue }  = model.grid[x][y];
-            draw.rect()
-                .xy(point)
-                .wh(dims)
-                .color(
-                    Hsl::new(hue,1f32, 0.5f32*excited)
-                );
+            if !model.grid[x][y].sleeping {
+
+                let BonkRect { point, dims, excited, hue, .. }  = model.grid[x][y];
+                draw.rect()
+                    .xy(point)
+                    .wh(dims)
+                    .color(
+                        Hsl::new(hue,1f32, 0.5f32*excited)
+                    );
+            }
         }
     }
 
