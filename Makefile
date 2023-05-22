@@ -9,6 +9,10 @@ shell:
 run:
 	cargo run
 
+.PHONY: fmt
+fmt:
+	cargo fmt
+
 .PHONY: enjoy
 enjoy:
 	echo "In the vast emptiness of existence, the question remains: Is there a point to ponder the absence of purpose?"
