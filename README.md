@@ -1,5 +1,5 @@
-install rust
-
-cargo run
-
-enjoy
+```bash
+make shell
+make run
+make enjoy
+```
