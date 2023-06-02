@@ -176,16 +176,18 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     for x in 0..RECT_COUNT_X {
         for y in 0..RECT_COUNT_Y {
+            let BonkRect {
+                point,
+                dims,
+                excited,
+                hue,
+                ..
+            } = model.grid[x][y];
+
+            let color = Hsl::new(hue + 180f32, 1f32, 0.7f32 * excited);
+
             if !model.grid[x][y].sleeping {
-                let BonkRect {
-                    point,
-                    dims,
-                    excited,
-                    hue,
-                    ..
-                } = model.grid[x][y];
                 let scale = (5.0 * (excited + 0.001)).log2();
-                let color = Hsl::new(hue, 1f32, 0.5f32 * excited);
                 let spinny = (4.0 / excited * (if (x + y) % 2 == 0 { 1.0 } else { -1.0 })).log2();
 
                 draw.rect()
@@ -195,14 +197,17 @@ fn view(app: &App, model: &Model, frame: Frame) {
                     .rotate(if excited < 0.2f32 { spinny } else { 0.0 })
                     .color(color);
             }
+
+            draw.rect()
+                .xy(point)
+                .z(-1f32)
+                .wh(dims * 0.95f32)
+                .color(Hsl::new(hue, color.saturation, color.lightness * 2.0));
         }
     }
 
     // cursor
-    // draw.ellipse()
-    //     .xy(model.cur_mouse)
-    //     .radius(10f32)
-    //     .color(cl);
+    draw.ellipse().xy(model.cur_mouse).z(10f32).radius(10f32);
 
     draw.to_frame(app, &frame).unwrap();
 }
